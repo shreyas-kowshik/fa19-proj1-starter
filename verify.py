@@ -31,6 +31,9 @@ def checkequal(file1, file2):
         number_of_inac = 0
         for i in range(len(student_content)):
             if int(student_content[i])!= int(reference_content[i]):
+                #print(int(student_content[i]))
+                #print(int(reference_content[i]))               
+                #print("---") 
                 number_of_inac += 1
         return number_of_inac, len(student_content)
 
