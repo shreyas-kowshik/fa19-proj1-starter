@@ -64,6 +64,10 @@ void printUsage(char* argv[])
 	Mandelbrot(threshold, max_iterations, center, scale, resolution, ar);
 
 	printf("Calculation complete, outputting to file %s\n", argv[7]);
+	
+	// Free memory to prevent leak
+	free(center);	
+
 	//END STEP 2
 
 	//STEP 3: Output the results of Mandelbrot to .txt files.

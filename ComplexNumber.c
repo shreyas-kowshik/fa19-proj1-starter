@@ -48,7 +48,6 @@ ComplexNumber* ComplexSum(ComplexNumber* a, ComplexNumber* b)
 //Returns the absolute value of Complex Number a
 double ComplexAbs(ComplexNumber* a)
 { 
-    ComplexNumber *c = (ComplexNumber *) malloc(sizeof(ComplexNumber));
 	return sqrt((a->real)*(a->real) + (a->imaginary)*(a->imaginary));
 }
 
