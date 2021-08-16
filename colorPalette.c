@@ -29,6 +29,8 @@ int P3colorpalette(char* colorfile, int width, int heightpercolor, char* outputf
 	pixel_intensity ... * width	
 	*/
 	int* colorcount;
+	int val=0;
+	colorcount=&val;
 	uint8_t** colors = FileToColorMap(colorfile, colorcount);
 	int height = heightpercolor * (*colorcount);
 	FILE* fp=fopen(outputfile, "w");
@@ -46,7 +48,6 @@ int P3colorpalette(char* colorfile, int width, int heightpercolor, char* outputf
 	int res=fclose(fp);
 	for(int i = 0;i < (*colorcount);i++) free(colors[i]);
 	free(colors);
-	free(colorcount);
 
 	return 0;
 }
@@ -54,7 +55,37 @@ int P3colorpalette(char* colorfile, int width, int heightpercolor, char* outputf
 //Same as above, but with P6 format
 int P6colorpalette(char* colorfile, int width, int heightpercolor, char* outputfile)
 {
-	//YOUR CODE HERE
+	int* colorcount;
+	int val=0;
+	colorcount=&val;
+	uint8_t** colors = FileToColorMap(colorfile, colorcount);
+	int height = heightpercolor * (*colorcount);
+	FILE* fp=fopen(outputfile, "w");
+	char str1[] = "P6 ";
+	char space[] = " ";
+	int intensity=255;
+	fprintf(fp, "P6 %d %d 255\n", width, height);
+	
+
+	int idx=0;
+	for(int h=0;h<height;h++) {
+		idx=(h/heightpercolor);
+		for(int w=0;w<width-1;w++) {
+			fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
+			fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
+			fwrite(&(colors[idx][2]), sizeof(colors[idx][2]), 1, fp);
+			// fprintf(fp, "%d %d %d ", colors[idx][0], colors[idx][1], colors[idx][2]);
+		}
+		fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
+		fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
+		fwrite(&(colors[idx][2]), sizeof(colors[idx][2]), 1, fp);
+	}
+
+	int res=fclose(fp);
+	for(int i = 0;i < (*colorcount);i++) free(colors[i]);
+	free(colors);
+	
+
 	return 0;
 }
 
