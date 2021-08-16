@@ -21,6 +21,49 @@ void printUsage(char* argv[])
 }
 
 
+/* Custom Helper Function to write output P6 .ppm files */
+int writeP6File(char* colorfile, u_int64_t size, char* outputfile, u_int64_t *output)
+{
+	int* colorcount;
+	int val=0;
+	colorcount=&val;
+	uint8_t** colors = FileToColorMap(colorfile, colorcount);
+	FILE* fp=fopen(outputfile, "w");
+	char str1[] = "P6 ";
+	char space[] = " ";
+	int intensity=255;
+	fprintf(fp, "P6 %d %d 255\n", size, size);
+	
+	// fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
+	// fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
+	// fwrite(&(colors[idx][2]), sizeof(colors[idx][2]), 1, fp);
+
+	u_int64_t iter;
+	int idx;
+	int zero=0;
+	for(u_int64_t h=0;h<size;h++) {
+		for(u_int64_t w=0;w<size;h++) {
+			iter=output[h*size + w];
+			if(iter==0) {	
+				fwrite(&zero, sizeof(zero), 1, fp);
+			}
+			else {
+				idx=((iter-1)%(*colorcount));
+				fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
+				fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
+				fwrite(&(colors[idx][2]), sizeof(colors[idx][2]), 1, fp);
+			}
+			
+		}
+	}
+
+	int res=fclose(fp);
+	for(int i = 0;i < (*colorcount);i++) free(colors[i]);
+	free(colors);	
+
+	return 0;
+}
+
 /*
 This function calculates the threshold values of every spot on a sequence of frames. The center stays the same throughout the zoom. First frame is at initialscale, and last frame is at finalscale scale.
 The remaining frames form a geometric sequence of scales, so 
@@ -28,7 +71,19 @@ if initialscale=1024, finalscale=1, framecount=11, then your frames will have sc
 As another example, if initialscale=10, finalscale=0.01, framecount=5, then your frames will have scale 10, 10 * (0.01/10)^(1/4), 10 * (0.01/10)^(2/4), 10 * (0.01/10)^(3/4), 0.01 .
 */
 void MandelMovie(double threshold, u_int64_t max_iterations, ComplexNumber* center, double initialscale, double finalscale, int framecount, u_int64_t resolution, u_int64_t ** output){
-    //YOUR CODE HERE
+	// r=ratio between two consecutive frames
+	// scale_n=(r)^(n-1)scale_1
+	// logr = (log(scale_N) - log(scale_1))/(N-1)
+	double r;
+	double t1=log(finalscale) - log(initialscale);
+	t1 = t1/((double)framecount - 1.0);
+	r = exp(t1);
+
+	// Mandelbrot(threshold, max_iterations, center, scale, resolution, ar);
+	for(int i=1;i <= framecount;i++) {
+		t1=pow(r,i-1)*initialscale;	
+		Mandelbrot(threshold, max_iterations, center, t1, resolution, output[i-1]);
+	}
 }
 
 /**************
@@ -47,7 +102,51 @@ int main(int argc, char* argv[])
 	Remember to use your solution to B.1.1 to process colorfile.
 	*/
 
-	//YOUR CODE HERE 
+
+  	// printf("Usage: %s <threshold> <maxiterations> <center_real> <center_imaginary> <initialscale> <finalscale> <framecount> <resolution> <output_folder> <colorfile>\n", argv[0]);
+
+
+	if (argc != 10) {
+		printf("%s: Wrong number of arguments, expecting 10\n", argv[0]);
+		printUsage(argv);
+		return 1;
+	}
+	double threshold, initialscale, finalscale;
+	int framecount;
+	ComplexNumber* center;
+	u_int64_t max_iterations, resolution;
+	char* outputfolder, colorfile;
+
+	threshold = atof(argv[1]);
+	max_iterations = (u_int64_t)atoi(argv[2]);
+	center = newComplexNumber(atof(argv[3]), atof(argv[4]));
+	initialscale = atoi(argv[5]);
+	finalscale = atof(argv[6]);
+	framecount = atof(argv[7]);
+	resolution = (u_int64_t)atoi(argv[8]);
+	outpfolder=argv[9];
+	colorfile=argv[10];
+	
+
+	if (threshold <= 0 || scale <= 0 || max_iterations <= 0 || framecount <=0 || framecount > 10000 || resolution < 0 || (framecount==1 && (initialscale != finalscale))) {
+		printf("The threshold, scale, and max_iterations must be > 0");
+		printUsage(argv);
+		return 1;
+	}
+
+	u_int64_t size = 2 * resolution + 1;
+	
+	// Allocate memory to store images
+	u_int64_t **output;
+	output = (u_int64_t **)malloc(framecount * sizeof(u_int64_t));
+	for(int i=0;i<framecount;i++) output[i] = (u_int64_t *)malloc(size * size * sizeof(u_int64_t));
+	if (ar == NULL) {
+		printf("Unable to allocate %lu bytes\n", size * size * sizeof(u_int64_t));
+		return 1;
+	}
+
+
+
 
 
 
@@ -58,7 +157,8 @@ int main(int argc, char* argv[])
 	If allocation fails, free all the space you have already allocated (including colormap), then return with exit code 1.
 	*/
 
-	//YOUR CODE HERE 
+	printf("Running MandelMovie\n");
+	MandelMovie(threshold, max_iterations, center, initialscale, finalscale, framecount, resolution, output);
 
 
 
@@ -69,9 +169,12 @@ int main(int argc, char* argv[])
 	Feel free to create your own helper function to complete this step.
 	As a reminder, we are using P6 format, not P3.
 	*/
-
-	//YOUR CODE HERE 
-
+	int res;
+	for(int i=0;i < framecount;i++) {
+		char[] outputfile="frame0000%d.ppm"gg;	
+		res = writeP6File(colorfile, size, outputfile, output[i]);
+	}
+	
 
 
 
