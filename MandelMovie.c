@@ -80,7 +80,7 @@ void MandelMovie(double threshold, u_int64_t max_iterations, ComplexNumber* cent
 
 	for(int i=1;i <= framecount;i++) {
 		t1=pow(r,i-1)*initialscale;
-		printf("t1 : %0.9lf\n", t1);	
+		printf("t1 : %0.9lf\n", t1);
 		Mandelbrot(threshold, max_iterations, center, t1, resolution, output[i-1]);
 	}
 }
