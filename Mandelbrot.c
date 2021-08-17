@@ -53,9 +53,9 @@ void Mandelbrot(double threshold, u_int64_t max_iterations, ComplexNumber* cente
 	ComplexNumber* C;
 	
 	for(u_int64_t col=0;col<(2*resolution + 1);col++) {
-		a = i + ((((double)resolution) - ((double)col)) * unit_step);
+		a = i + (((res) - ((double)col)) * unit_step);
 		for(u_int64_t row=0;row<(2*resolution + 1);row++) {
-			b = r - ((((double)resolution) - ((double)row)) * unit_step);
+			b = r - ((((res) - ((double)row)) * unit_step));
 			C = newComplexNumber(b, a);
 			*(output + out_idx) = MandelbrotIterations(max_iterations, C, threshold);
 			freeComplexNumber(C);

@@ -29,11 +29,9 @@ int writeP6File(char* colorfile, u_int64_t size, char* outputfile, u_int64_t *ou
 	int val=0;
 	colorcount=&val;
 	uint8_t** colors = FileToColorMap(colorfile, colorcount);
+	printf("colorcount : %d\n", *colorcount);
 	FILE* fp=fopen(outputfile, "w");
-	char str1[] = "P6 ";
-	char space[] = " ";
-	int intensity=255;
-	fprintf(fp, "P6 %lu %lu 255\n", size, size);
+	fprintf(fp, "P6 %d %d 255\n", size, size);
 	
 	// fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
 	// fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
@@ -46,16 +44,13 @@ int writeP6File(char* colorfile, u_int64_t size, char* outputfile, u_int64_t *ou
 	for(u_int64_t h=0;h<size;h++) {
 		for(u_int64_t w=0;w<size;w++) {
 			iter=output[h*size + w];
-			// printf("%lu %lu %lu\n", h, w, iter);
 
 			if(iter==0) {	
-				fwrite(&zero, sizeof(zero), 1, fp);
+				fprintf(fp, "%c%c%c", 0,0,0);
 			}
 			else {
 				idx=((((int)iter)-1)%(*colorcount));
-				fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
-				fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
-				fwrite(&(colors[idx][2]), sizeof(colors[idx][2]), 1, fp);
+				fprintf(fp, "%c%c%c", colors[idx][0], colors[idx][1], colors[idx][2]);
 			}
 			
 		}
@@ -83,9 +78,9 @@ void MandelMovie(double threshold, u_int64_t max_iterations, ComplexNumber* cent
 	t1 = t1/((double)framecount - 1.0);
 	r = exp(t1);
 
-	// Mandelbrot(threshold, max_iterations, center, scale, resolution, ar);
 	for(int i=1;i <= framecount;i++) {
-		t1=pow(r,i-1)*initialscale;	
+		t1=pow(r,i-1)*initialscale;
+		printf("t1 : %0.9lf\n", t1);	
 		Mandelbrot(threshold, max_iterations, center, t1, resolution, output[i-1]);
 	}
 }
@@ -143,7 +138,7 @@ int main(int argc, char* argv[])
 	
 	// Allocate memory to store images
 	u_int64_t **output;
-	output = (u_int64_t **)malloc(framecount * sizeof(u_int64_t));
+	output = (u_int64_t **)malloc(framecount * sizeof(u_int64_t *));
 	for(int i=0;i<framecount;i++) output[i] = (u_int64_t *)malloc(size * size * sizeof(u_int64_t));
 	if (output == NULL) {
 		printf("Unable to allocate %lu bytes\n", size * size * sizeof(u_int64_t));
@@ -174,6 +169,7 @@ int main(int argc, char* argv[])
 	Feel free to create your own helper function to complete this step.
 	As a reminder, we are using P6 format, not P3.
 	*/
+	
 	int res;
 	char* num;
 	for(int i=0;i < framecount;i++) {
@@ -188,6 +184,8 @@ int main(int argc, char* argv[])
 		 
 		res = writeP6File(colorfile, size, outputfile, output[i]);
 	}
+	
+
 
 
 	//STEP 4: Free all allocated memory
