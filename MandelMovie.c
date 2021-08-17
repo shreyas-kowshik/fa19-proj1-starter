@@ -180,8 +180,8 @@ int main(int argc, char* argv[])
 		strcpy(outputfile, outputfolder);
 		strcat(outputfile, outputf);
 		strcat(outputfile, num);
-		strcat(outputfile, extension);
-		 
+		strcat(outputfile, extension); 
+		free(num);
 		res = writeP6File(colorfile, size, outputfile, output[i]);
 	}
 	
@@ -192,8 +192,10 @@ int main(int argc, char* argv[])
 	/*
 	Make sure there's no memory leak.
 	*/
-	//YOUR CODE HERE 
 
+	for(int i=0;i<framecount;i++) free(output[i]);
+	free(output);
+	free(center);
 
 
 
