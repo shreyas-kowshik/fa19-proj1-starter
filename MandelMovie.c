@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 #include "ComplexNumber.h"
 #include "Mandelbrot.h"
 #include "ColorMapInput.h"
@@ -32,7 +33,7 @@ int writeP6File(char* colorfile, u_int64_t size, char* outputfile, u_int64_t *ou
 	char str1[] = "P6 ";
 	char space[] = " ";
 	int intensity=255;
-	fprintf(fp, "P6 %d %d 255\n", size, size);
+	fprintf(fp, "P6 %lu %lu 255\n", size, size);
 	
 	// fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
 	// fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
@@ -41,14 +42,17 @@ int writeP6File(char* colorfile, u_int64_t size, char* outputfile, u_int64_t *ou
 	u_int64_t iter;
 	int idx;
 	int zero=0;
+	
 	for(u_int64_t h=0;h<size;h++) {
-		for(u_int64_t w=0;w<size;h++) {
+		for(u_int64_t w=0;w<size;w++) {
 			iter=output[h*size + w];
+			// printf("%lu %lu %lu\n", h, w, iter);
+
 			if(iter==0) {	
 				fwrite(&zero, sizeof(zero), 1, fp);
 			}
 			else {
-				idx=((iter-1)%(*colorcount));
+				idx=((((int)iter)-1)%(*colorcount));
 				fwrite(&(colors[idx][0]), sizeof(colors[idx][0]), 1, fp);
 				fwrite(&(colors[idx][1]), sizeof(colors[idx][1]), 1, fp);
 				fwrite(&(colors[idx][2]), sizeof(colors[idx][2]), 1, fp);
@@ -106,7 +110,7 @@ int main(int argc, char* argv[])
   	// printf("Usage: %s <threshold> <maxiterations> <center_real> <center_imaginary> <initialscale> <finalscale> <framecount> <resolution> <output_folder> <colorfile>\n", argv[0]);
 
 
-	if (argc != 10) {
+	if (argc != 11) {
 		printf("%s: Wrong number of arguments, expecting 10\n", argv[0]);
 		printUsage(argv);
 		return 1;
@@ -115,7 +119,8 @@ int main(int argc, char* argv[])
 	int framecount;
 	ComplexNumber* center;
 	u_int64_t max_iterations, resolution;
-	char* outputfolder, colorfile;
+	char* outputfolder;
+	char* colorfile;
 
 	threshold = atof(argv[1]);
 	max_iterations = (u_int64_t)atoi(argv[2]);
@@ -124,11 +129,11 @@ int main(int argc, char* argv[])
 	finalscale = atof(argv[6]);
 	framecount = atof(argv[7]);
 	resolution = (u_int64_t)atoi(argv[8]);
-	outpfolder=argv[9];
+	outputfolder=argv[9];
 	colorfile=argv[10];
 	
 
-	if (threshold <= 0 || scale <= 0 || max_iterations <= 0 || framecount <=0 || framecount > 10000 || resolution < 0 || (framecount==1 && (initialscale != finalscale))) {
+	if (threshold <= 0 || initialscale <= 0 || finalscale <=0  || max_iterations <= 0 || framecount <=0 || framecount > 10000 || resolution < 0 || (framecount==1 && (initialscale != finalscale))) {
 		printf("The threshold, scale, and max_iterations must be > 0");
 		printUsage(argv);
 		return 1;
@@ -140,7 +145,7 @@ int main(int argc, char* argv[])
 	u_int64_t **output;
 	output = (u_int64_t **)malloc(framecount * sizeof(u_int64_t));
 	for(int i=0;i<framecount;i++) output[i] = (u_int64_t *)malloc(size * size * sizeof(u_int64_t));
-	if (ar == NULL) {
+	if (output == NULL) {
 		printf("Unable to allocate %lu bytes\n", size * size * sizeof(u_int64_t));
 		return 1;
 	}
@@ -170,12 +175,19 @@ int main(int argc, char* argv[])
 	As a reminder, we are using P6 format, not P3.
 	*/
 	int res;
+	char* num;
 	for(int i=0;i < framecount;i++) {
-		char[] outputfile="frame0000%d.ppm"gg;	
+		char outputf[100]="/frame0000";
+		char outputfile[100];
+		char extension[100]=".ppm";
+		if (asprintf(&num, "%d", i) == -1) perror("asprintf");
+		strcpy(outputfile, outputfolder);
+		strcat(outputfile, outputf);
+		strcat(outputfile, num);
+		strcat(outputfile, extension);
+		 
 		res = writeP6File(colorfile, size, outputfile, output[i]);
 	}
-	
-
 
 
 	//STEP 4: Free all allocated memory
